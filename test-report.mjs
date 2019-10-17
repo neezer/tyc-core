@@ -1,0 +1,3 @@
+export { makeTestReport };
+
+const makeTestReport = () => ({});

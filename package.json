@@ -1,0 +1,23 @@
+{
+  "name": "@tyc/core",
+  "description": "Test Your Code",
+  "version": "1.0.0",
+  "module": "index.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neezer/tyc-core"
+  },
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "index.mjs",
+    "test.mjs",
+    "plugins",
+    "middleware.mjs",
+    "package.json",
+    "README.md",
+    "test-collection.mjs",
+    "test-report.mjs",
+    "utils.mjs"
+  ]
+}
