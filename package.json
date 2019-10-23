@@ -1,7 +1,7 @@
 {
   "name": "@tyc/core",
   "description": "Test Your Code",
-  "version": "1.0.0",
+  "version": "0.0.0--semantically-released",
   "module": "index.mjs",
   "repository": {
     "type": "git",
