@@ -1,3 +1,3 @@
 export { makeTestReport };
 
-const makeTestReport = () => ({});
+const makeTestReport = (name, filename) => ({ name, filename });

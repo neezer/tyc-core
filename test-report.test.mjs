@@ -7,3 +7,15 @@ test("returns an empty object", t => {
 
   t.assert(JSON.stringify(report) === "{}", "report is an object");
 });
+
+test("assigns a name", t => {
+  const report = makeTestReport("hello!");
+
+  t.assert(report.name === "hello!", "name is hello!");
+});
+
+test("assigns a filename", t => {
+  const report = makeTestReport(undefined, "./test-report.test.mjs");
+
+  t.assert(report.filename === "./test-report.test.mjs", "filename is correct");
+});

@@ -1,9 +1,10 @@
 import { sumHRTimes, pluralize } from "../utils.mjs";
+import util from "util";
 
 export { reporter };
 
 const summary = (tests, format) => {
-  const runtime = sumHRTimes([...tests.values()]);
+  const runtime = sumHRTimes([...tests.values()], tests.isGrouped);
 
   process.stdout.write("\n");
   process.stdout.write("----\n");
@@ -13,7 +14,9 @@ const summary = (tests, format) => {
 
 const failure = (name, report, format) => error => {
   process.stdout.write(`✘ ${name} (${format(report.duration)})\n`);
-  console.error(error);
+  process.stdout.write(`├── from ${report.filename}\n`);
+  process.stdout.write(`│ \n`);
+  process.stdout.write(`${formatError(error)}\n`);
 };
 
 const success = (name, report, format) => () => {
@@ -41,6 +44,16 @@ const uncaughtException = error => {
   );
 
   process.stderr.write("\n");
+};
+
+const formatError = error => {
+  const raw = util.inspect(error);
+  const lines = raw.split("\n").concat(["", ""]);
+  const prefix = last => (last ? "└" : "│");
+
+  return lines
+    .map((l, i) => `${prefix(i === lines.length - 1)}   ${l}`)
+    .join("\n");
 };
 
 const reporter = { success, failure, summary, noAssertions, uncaughtException };

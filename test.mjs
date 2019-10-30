@@ -4,6 +4,16 @@ import { ensure } from "./utils.mjs";
 
 export { makeTest };
 
+const makeT = assert => ({ assert });
+const stripCWD = v => v.replace(process.cwd(), ".");
+const stripStackPrefix = v => v.replace(/^\s+.+file:\/\//, "");
+const stripStackSuffix = v => v.replace(/\:\d+\:\d+$/, "");
+const ensureKeyIsACollection = c => k => c.get(k) || new Map([]);
+
+const flagDefs = [
+  { name: "grouped", activateWith: "group", defaultValue: false }
+];
+
 const report = (name, print, format) => async (report, next) => {
   try {
     await next();
@@ -49,11 +59,9 @@ const instrument = () => async (report, next) => {
   return ensure(record)(next);
 };
 
-const makeT = assert => ({ assert });
-
-const exec = async (name, fn, opts) => {
+const exec = async (name, filename, fn, opts) => {
   const t = makeT(opts.assert);
-  const testReport = makeTestReport();
+  const testReport = makeTestReport(name, filename);
   const m = makeMiddleware();
 
   m.use(report(name, opts.reporter, opts.durationFormatter));
@@ -66,8 +74,63 @@ const exec = async (name, fn, opts) => {
   return testReport;
 };
 
-const makeTest = (tests, opts) => async (name, fn) => {
-  const testReport = await exec(name, fn, opts);
+const getTestFile = error =>
+  error.stack
+    .split("\n")
+    .map(stripStackPrefix)
+    .map(stripStackSuffix)
+    .map(stripCWD)[2];
 
-  tests.set(name, testReport);
+const saveReport = (report, collection, flags) => {
+  if (flags.grouped) {
+    const tests = ensureKeyIsACollection(collection)(report.filename);
+
+    tests.set(report.name, report);
+    collection.set(report.filename, tests);
+
+    Object.defineProperty(collection, "isGrouped", { value: true });
+  } else {
+    collection.set(report.name, report);
+    Object.defineProperty(collection, "isGrouped", { value: false });
+  }
+};
+
+const makeFlagManager = () => {
+  const flags = flagDefs.reduce(
+    (memo, { name, defaultValue }) => ({ ...memo, [name]: defaultValue }),
+    {}
+  );
+
+  const manageFlagsFor = o => {
+    const activators = flagDefs.reduce(
+      (memo, { name, activateWith, defaultValue }) => ({
+        ...memo,
+        [activateWith]: {
+          value: () => {
+            flags[name] = !defaultValue;
+          }
+        }
+      }),
+      {}
+    );
+
+    Object.defineProperties(o, activators);
+
+    return o;
+  };
+
+  return { flags, manageFlagsFor };
+};
+
+const makeTest = (collection, opts) => {
+  const { flags, manageFlagsFor } = makeFlagManager();
+
+  const test = async (name, fn) => {
+    const filename = getTestFile(new Error());
+    const testReport = await exec(name, filename, fn, opts);
+
+    saveReport(testReport, collection, flags);
+  };
+
+  return manageFlagsFor(test);
 };
