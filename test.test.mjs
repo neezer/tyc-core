@@ -112,3 +112,24 @@ test("adds tests in groups when group() called", async t => {
   t.assert(hasAssertions(report), "has assertions");
   t.assert(hasFilename(report), "has a filename key");
 });
+
+test("beforeEach", async t => {
+  const collection = new Map([]);
+  const subject = makeTest(collection, defaultOpts);
+
+  let calls = [];
+
+  await subject.beforeEach(() => {
+    calls.push("beforeEach");
+  });
+
+  await subject("test 2", () => {
+    calls.push("test 1");
+  });
+
+  await subject("test 1", () => {
+    calls.push("test 2");
+  });
+
+  t.assert(calls.length === 4, "called before each");
+});
