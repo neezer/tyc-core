@@ -20,11 +20,13 @@ const failure = (name, report, format) => error => {
 };
 
 const success = (name, report, format) => () => {
-  process.stdout.write(`✔ ${name} (${format(report.duration)})\n`);
+  process.stdout.write(
+    `✔ ${name} (${format(report.duration)}) -- ${report.filename}\n`
+  );
 };
 
-const noAssertions = name => () => {
-  process.stdout.write(`∅ ${name}\n`);
+const noAssertions = (name, report) => () => {
+  process.stdout.write(`∅ ${name} -- ${report.filename}\n`);
 };
 
 const uncaughtException = error => {

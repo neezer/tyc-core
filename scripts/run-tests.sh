@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec node --experimental-modules ./test-helpers/all-tests.mjs
+exec node ./test-helpers/all-tests.mjs

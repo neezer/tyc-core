@@ -97,20 +97,25 @@ const saveReport = (report, collection, flags) => {
 
 const makeFlagManager = () => {
   const flags = flagDefs.reduce(
-    (memo, { name, defaultValue }) => ({ ...memo, [name]: defaultValue }),
+    (memo, { name, defaultValue }) => {
+      memo[name] = defaultValue;
+
+      return memo;
+    },
     {}
   );
 
   const manageFlagsFor = o => {
     const activators = flagDefs.reduce(
-      (memo, { name, activateWith, defaultValue }) => ({
-        ...memo,
-        [activateWith]: {
+      (memo, { name, activateWith, defaultValue }) => {
+        memo[activateWith] = {
           value: () => {
             flags[name] = !defaultValue;
           }
         }
-      }),
+
+        return memo;
+      },
       {}
     );
 
