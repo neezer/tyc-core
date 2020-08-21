@@ -19,7 +19,7 @@ const report = (name, print, format) => async (report, next) => {
     await next();
 
     if (report.assertions.length === 0) {
-      print.noAssertions(name)();
+      print.noAssertions(name, report, format)();
     } else {
       print.success(name, report, format)();
     }
