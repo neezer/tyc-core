@@ -5,32 +5,32 @@ import { reporter } from "./test-helpers/noop-reporter.mjs";
 import { identity } from "./utils.mjs";
 
 const defaultOpts = {
-  assert,
+  interface: ["assert", assert],
   reporter,
-  durationFormatter: identity
+  durationFormatter: identity,
 };
 
-const has = prop => obj => obj.hasOwnProperty(prop);
+const has = (prop) => (obj) => obj.hasOwnProperty(prop);
 const hasDuration = has("duration");
 const hasAssertions = has("assertions");
 const hasFilename = has("filename");
 
-test("adds a test to the given collection", async t => {
+test("adds a test to the given collection", async (t) => {
   const tests = new Map([]);
   const subject = makeTest(tests, defaultOpts);
 
-  await subject("thingy", tt => {
+  await subject("thingy", (tt) => {
     tt.assert(true);
   });
 
   t.assert(tests.size === 1, "tests.size should be 1");
 });
 
-test("adds duration of test to test report", async t => {
+test("adds duration of test to test report", async (t) => {
   const tests = new Map([]);
   const subject = makeTest(tests, defaultOpts);
 
-  await subject("thingy", tt => {
+  await subject("thingy", (tt) => {
     tt.assert(true, "is true");
   });
 
@@ -42,11 +42,11 @@ test("adds duration of test to test report", async t => {
   t.assert(typeof report.duration[1] === "number", "nanoseconds is a number");
 });
 
-test("tracks assertions", async t => {
+test("tracks assertions", async (t) => {
   const tests = new Map([]);
   const subject = makeTest(tests, defaultOpts);
 
-  await subject("thingy", tt => {
+  await subject("thingy", (tt) => {
     tt.assert(true, "is true");
   });
 
@@ -57,11 +57,11 @@ test("tracks assertions", async t => {
   t.assert(report.assertions[0] === "is true", "assertion message is correct");
 });
 
-test("generates report for failures", async t => {
+test("generates report for failures", async (t) => {
   const tests = new Map([]);
   const subject = makeTest(tests, defaultOpts);
 
-  await subject("failing", tt => {
+  await subject("failing", (tt) => {
     tt.assert(false, "is false");
   });
 
@@ -71,12 +71,12 @@ test("generates report for failures", async t => {
   t.assert(hasAssertions(report), "has assertions");
 });
 
-test("report records the filename", async t => {
+test("report records the filename", async (t) => {
   const tests = new Map([]);
   const subject = makeTest(tests, defaultOpts);
   const expected = "./test.test.mjs";
 
-  await subject("thingy", tt => {
+  await subject("thingy", (tt) => {
     tt.assert(true, "is true");
   });
 
@@ -90,13 +90,13 @@ test("report records the filename", async t => {
   );
 });
 
-test("adds tests in groups when group() called", async t => {
+test("adds tests in groups when group() called", async (t) => {
   const collection = new Map([]);
   const subject = makeTest(collection, defaultOpts);
 
   subject.group();
 
-  await subject("thingy", tt => {
+  await subject("thingy", (tt) => {
     tt.assert(true, "is true");
   });
 

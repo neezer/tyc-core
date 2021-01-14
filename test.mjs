@@ -4,14 +4,14 @@ import { ensure } from "./utils.mjs";
 
 export { makeTest };
 
-const makeT = assert => ({ assert });
-const stripCWD = v => v.replace(process.cwd(), ".");
-const stripStackPrefix = v => v.replace(/^\s+.+file:\/\//, "");
-const stripStackSuffix = v => v.replace(/\:\d+\:\d+$/, "");
-const ensureKeyIsACollection = c => k => c.get(k) || new Map([]);
+const makeT = ([name, impl]) => ({ [name]: impl });
+const stripCWD = (v) => v.replace(process.cwd(), ".");
+const stripStackPrefix = (v) => v.replace(/^\s+.+file:\/\//, "");
+const stripStackSuffix = (v) => v.replace(/\:\d+\:\d+$/, "");
+const ensureKeyIsACollection = (c) => (k) => c.get(k) || new Map([]);
 
 const flagDefs = [
-  { name: "grouped", activateWith: "group", defaultValue: false }
+  { name: "grouped", activateWith: "group", defaultValue: false },
 ];
 
 const report = (name, print, format) => async (report, next) => {
@@ -28,11 +28,11 @@ const report = (name, print, format) => async (report, next) => {
   }
 };
 
-const collectAssertions = t => async (report, next) => {
+const collectAssertions = (t, interfaceName) => async (report, next) => {
   const assertions = [];
-  const unwrappedAssert = t.assert;
+  const unwrappedAssert = t[interfaceName];
 
-  t.assert = (assertion, message) => {
+  t[interfaceName] = (assertion, message) => {
     assertions.push(message || "(no message provided)");
     unwrappedAssert(assertion, message);
   };
@@ -60,13 +60,14 @@ const instrument = () => async (report, next) => {
 };
 
 const exec = async (name, filename, fn, opts) => {
-  const t = makeT(opts.assert);
+  const [interfaceName] = opts.interface;
+  const t = makeT(opts.interface);
   const testReport = makeTestReport(name, filename);
   const m = makeMiddleware();
 
   m.use(report(name, opts.reporter, opts.durationFormatter));
   m.use(instrument());
-  m.use(collectAssertions(t));
+  m.use(collectAssertions(t, interfaceName));
   m.use(run(fn, t));
 
   await m.exec(testReport);
@@ -74,7 +75,7 @@ const exec = async (name, filename, fn, opts) => {
   return testReport;
 };
 
-const getTestFile = error =>
+const getTestFile = (error) =>
   error.stack
     .split("\n")
     .map(stripStackPrefix)
@@ -96,23 +97,20 @@ const saveReport = (report, collection, flags) => {
 };
 
 const makeFlagManager = () => {
-  const flags = flagDefs.reduce(
-    (memo, { name, defaultValue }) => {
-      memo[name] = defaultValue;
+  const flags = flagDefs.reduce((memo, { name, defaultValue }) => {
+    memo[name] = defaultValue;
 
-      return memo;
-    },
-    {}
-  );
+    return memo;
+  }, {});
 
-  const manageFlagsFor = o => {
+  const manageFlagsFor = (o) => {
     const activators = flagDefs.reduce(
       (memo, { name, activateWith, defaultValue }) => {
         memo[activateWith] = {
           value: () => {
             flags[name] = !defaultValue;
-          }
-        }
+          },
+        };
 
         return memo;
       },

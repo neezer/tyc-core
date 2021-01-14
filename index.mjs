@@ -6,9 +6,9 @@ import { makeTest } from "./test.mjs";
 const tests = new Map([]);
 
 const test = makeTest(tests, {
-  assert,
+  interface: ["assert", assert],
   reporter,
-  durationFormatter: format
+  durationFormatter: format,
 });
 
 export default test;
